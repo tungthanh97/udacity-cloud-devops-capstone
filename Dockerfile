@@ -11,8 +11,7 @@ COPY app.py requirements.txt /app/
 ## Step 3:
 # Install packages from requirements.txt
 # hadolint ignore=DL3013
-RUN pip install --upgrade pip &&\
-    pip install --trusted-host pypi.python.org -r requirements.txt
+RUN apt-get update && apt-get install ffmpeg libsm6 libxext6 libgl1 -y
 
 ## Step 4:
 # Expose port 80
