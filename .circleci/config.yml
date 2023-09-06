@@ -1,0 +1,163 @@
+version: 2.1
+
+orbs:
+  aws-eks: circleci/aws-eks@2.2.0
+  kubernetes: circleci/kubernetes@1.2.0
+
+jobs:
+  lint:
+    docker:
+      - image: python:3.8.0
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "requirements.txt" }}
+            - v1-dependencies-
+
+      - run:
+          name: Install python dependencies
+          command: |
+            python3 -m venv venv
+            . venv/bin/activate
+            make install
+            # Install hadolint
+            wget -O /bin/hadolint https://github.com/hadolint/hadolint/releases/download/v1.16.3/hadolint-Linux-x86_64 &&\
+                chmod +x /bin/hadolint
+
+      - save_cache:
+          paths:
+            - ./venv
+          key: v1-dependencies-{{ checksum "requirements.txt" }}
+
+      - run:
+          name: run lint
+          command: |
+            . venv/bin/activate
+            make lint
+  build:
+    docker:
+      - image: cimg/python:3.11.4
+    parameters:
+      cluster-name:
+        description: |
+          Name of the EKS cluster
+        type: string
+        default: "CapstoneEKS-0J5F5Y6TBD53"
+      aws-region:
+        description: |
+          AWS region
+        type: string
+        default: "us-east-1"
+    steps:
+      - checkout
+      - setup_remote_docker:
+          version: 20.10.14
+          docker_layer_caching: true
+      - run:
+          name: Install dependencies
+          command: |
+            sudo apt install -y tar gzip curl
+      - kubernetes/install-kubectl
+      - run:
+          name: Configure variable
+          command: |
+            echo AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID >> .env
+            echo AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY >> .env
+            echo DOCKER_HUB_PASSWORD=$DOCKER_HUB_PASSWORD >> .env
+            echo DOCKER_HUB_USERNAME=$DOCKER_HUB_USERNAME >> .env
+            cat .env
+      - run:
+          name: Docker login
+          command: |
+            docker login -u "$DOCKER_HUB_USERNAME" -p $(echo "$DOCKER_HUB_PASSWORD")
+      - run:
+          name: Load Docker image layer cache
+          command: |
+            set +o pipefail
+            docker load -i caches/ml-classification.tar | true
+      - run:
+          name: Build application Docker image
+          command: docker build --cache-from=ml-classification -t ml-classification .
+      - run:
+          name: Save Docker image layer cache
+          command: |
+            chmod -R 777 ../
+            mkdir -p caches
+            docker save -o caches/ml-classification.tar ml-classification
+      - run:
+          name: Push Docker Image
+          command: |
+            docker tag ml-classification tungthanh97/ml-classification
+            docker push tungthanh97/ml-classification
+  deploy:
+    docker:
+      - image: cimg/python:3.11.4
+    parameters:
+      cluster-name:
+        description: |
+          Name of the EKS cluster
+        type: string
+        default: "CapstoneEKS-ZV6Udu3P4jGw"
+      aws-region:
+        description: |
+          AWS region
+        type: string
+        default: "us-east-1"
+    steps:
+      - checkout
+      - setup_remote_docker:
+          version: 20.10.14
+          docker_layer_caching: true
+      - run:
+          name: Install dependencies
+          command: |
+            sudo apt install -y tar gzip curl
+      - kubernetes/install-kubectl
+      - aws-eks/update-kubeconfig-with-authenticator:
+          cluster-name: << parameters.cluster-name >>
+          aws-region: << parameters.aws-region >>
+          install-kubectl: true
+      - kubernetes/create-or-update-resource:
+          resource-file-path: ./kubernetes/deployment.yml
+          resource-name: deployment/ml-classification
+          get-rollout-status: true
+          show-kubectl-command: true
+      - kubernetes/create-or-update-resource:
+          resource-file-path: ./kubernetes/aws-authen-cm.yml
+          resource-name: configmap/aws-auth
+      - run:
+          name: Test cluster
+          command: |
+            kubectl get nodes
+            kubectl get deployment
+            kubectl get pod -o wide
+            kubectl get services
+      - run:
+          name: Cleaning up
+          command: docker system prune
+
+workflows:
+  version: 2
+  build-deploy:
+    jobs:
+      - lint
+      - build:
+          cluster-name: CapstoneEKS-0J5F5Y6TBD53
+          aws-region: $AWS_DEFAULT_REGION
+          filters:
+            branches:
+              only:
+                - master
+          requires:
+            - "lint"
+      - deploy:
+          cluster-name: CapstoneEKS-0J5F5Y6TBD53
+          aws-region: $AWS_DEFAULT_REGION
+          filters:
+            branches:
+              only:
+                - master
+          requires:
+            - "build"
