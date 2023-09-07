@@ -1,10 +1,9 @@
-## Load Balancer Endpoint
-
-http://a7fc107d6227e435bbdcb554906f0fb6-1219523202.us-east-1.elb.amazonaws.com/
+[Github link](https://github.com/tungthanh97/udacity-cloud-devops-capstone)
 
 ## Authors
 
 - [@tungthanh97](https://www.github.com/tungthanh97)
+
 
 ### CircleCI Status
 
