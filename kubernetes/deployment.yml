@@ -1,16 +1,16 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: ml-classification
+  name: tom-project-ml
   labels:
-    app: ml-classification
+    app: tom-project-ml
   namespace: default
 spec:
   progressDeadlineSeconds: 3600
   replicas: 3
   selector:
     matchLabels:
-      app: ml-classification
+      app: tom-project-ml
   strategy:
     rollingUpdate:
       maxSurge: 25%
@@ -19,12 +19,12 @@ spec:
   template:
     metadata:
       labels:
-        app: ml-classification
+        app: tom-project-ml
     spec:
       containers:
-        - image: tungthanh97/ml-classification:latest
+        - image: tungthanh97/tom-project-ml:latest
           imagePullPolicy: Always
-          name: ml-classification
+          name: tom-project-ml
           ports:
             - containerPort: 80
           resources:
@@ -39,13 +39,13 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: ml-classification
+  name: tom-project-ml
   labels:
-    app: ml-classification
+    app: tom-project-ml
 spec:
   type: LoadBalancer
   selector:
-    app: ml-classification
+    app: tom-project-ml
   ports:
     - port: 80
       targetPort: 80

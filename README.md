@@ -80,11 +80,11 @@ To run this project, you will need to add the following environment variables to
 - Run `aws eks list-clusters --profile udacity` to see output like below
   `{
     "clusters": [
-        "CapstoneEKS-ZV6Udu3P4jGw"
+        "CapstoneEKS-cEYGixysybXa"
     ]
 }` to get cluster name
 - Replace the line `- rolearn: arn:aws:iam::876162603122:role/capstone-node-group-InstanceRole-1H3AEXO3XOL4E` in `aws-authen-cm.yml`
-- Replace cluster name to the line `123: cluster-name: CapstoneEKS-ZV6Udu3P4jGw` in `./circleci/config.yml`.
+- Replace cluster name to the line `123: cluster-name: CapstoneEKS-cEYGixysybXa` in `./circleci/config.yml`.
 - Configure CircleCI project for the github repository
 - Done!
 
@@ -92,9 +92,9 @@ To run this project, you will need to add the following environment variables to
 
 ```bash
     # Fet k8s configs
-    aws eks --region us-east-1 update-kubeconfig --name CapstoneEKS-ZV6Udu3P4jGw
+    aws eks --region us-east-1 update-kubeconfig --name CapstoneEKS-cEYGixysybXa
     # Switch context
-    kubectl config use-context arn:aws:eks:us-east-1:988918897812:cluster/CapstoneEKS-ZV6Udu3P4jGw
+    kubectl config use-context arn:aws:eks:us-east-1:988918897812:cluster/CapstoneEKS-cEYGixysybXa
     # Manually apply k8s resource
     kubectl apply -f aws-authen-cm.yml
     # See ndoes in cluster

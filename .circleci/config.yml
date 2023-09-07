@@ -44,7 +44,7 @@ jobs:
         description: |
           Name of the EKS cluster
         type: string
-        default: 'CapstoneEKS-ZV6Udu3P4jGw'
+        default: 'CapstoneEKS-cEYGixysybXa'
       aws-region:
         description: |
           AWS region
@@ -76,21 +76,21 @@ jobs:
           name: Load Docker image layer cache
           command: |
             set +o pipefail
-            docker load -i caches/ml-classification.tar | true
+            docker load -i caches/tom-project-ml.tar | true
       - run:
           name: Build application Docker image
-          command: docker build --cache-from=ml-classification -t ml-classification .
+          command: docker build --cache-from=tom-project-ml -t tom-project-ml .
       - run:
           name: Save Docker image layer cache
           command: |
             chmod -R 777 ../
             mkdir -p caches
-            docker save -o caches/ml-classification.tar ml-classification
+            docker save -o caches/tom-project-ml.tar tom-project-ml
       - run:
           name: Push Docker Image
           command: |
-            docker tag ml-classification tungthanh97/ml-classification
-            docker push tungthanh97/ml-classification
+            docker tag tom-project-ml tungthanh97/tom-project-ml
+            docker push tungthanh97/tom-project-ml
   deploy:
     docker:
       - image: cimg/python:3.11.4
@@ -99,7 +99,7 @@ jobs:
         description: |
           Name of the EKS cluster
         type: string
-        default: 'CapstoneEKS-ZV6Udu3P4jGw'
+        default: 'CapstoneEKS-cEYGixysybXa'
       aws-region:
         description: |
           AWS region
@@ -121,7 +121,7 @@ jobs:
           install-kubectl: true
       - kubernetes/create-or-update-resource:
           resource-file-path: ./kubernetes/deployment.yml
-          resource-name: deployment/ml-classification
+          resource-name: deployment/tom-project-ml
           get-rollout-status: true
           show-kubectl-command: true
       - kubernetes/create-or-update-resource:
@@ -144,7 +144,7 @@ workflows:
     jobs:
       - lint
       - build:
-          cluster-name: CapstoneEKS-ZV6Udu3P4jGw
+          cluster-name: CapstoneEKS-cEYGixysybXa
           aws-region: $AWS_DEFAULT_REGION
           filters:
             branches:
@@ -153,7 +153,7 @@ workflows:
           requires:
             - 'lint'
       - deploy:
-          cluster-name: CapstoneEKS-ZV6Udu3P4jGw
+          cluster-name: CapstoneEKS-cEYGixysybXa
           aws-region: $AWS_DEFAULT_REGION
           filters:
             branches:
