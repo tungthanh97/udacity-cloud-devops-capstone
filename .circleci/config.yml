@@ -44,12 +44,12 @@ jobs:
         description: |
           Name of the EKS cluster
         type: string
-        default: "CapstoneEKS-0J5F5Y6TBD53"
+        default: 'CapstoneEKS-ZV6Udu3P4jGw'
       aws-region:
         description: |
           AWS region
         type: string
-        default: "us-east-1"
+        default: 'us-east-1'
     steps:
       - checkout
       - setup_remote_docker:
@@ -99,12 +99,12 @@ jobs:
         description: |
           Name of the EKS cluster
         type: string
-        default: "CapstoneEKS-ZV6Udu3P4jGw"
+        default: 'CapstoneEKS-ZV6Udu3P4jGw'
       aws-region:
         description: |
           AWS region
         type: string
-        default: "us-east-1"
+        default: 'us-east-1'
     steps:
       - checkout
       - setup_remote_docker:
@@ -151,7 +151,7 @@ workflows:
               only:
                 - main
           requires:
-            - "lint"
+            - 'lint'
       - deploy:
           cluster-name: CapstoneEKS-ZV6Udu3P4jGw
           aws-region: $AWS_DEFAULT_REGION
@@ -160,4 +160,4 @@ workflows:
               only:
                 - main
           requires:
-            - "build"
+            - 'build'
